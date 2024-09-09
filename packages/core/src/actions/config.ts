@@ -92,17 +92,24 @@ function setI18nField<T extends BaseField = UnknownField>(field: T) {
 
 function getI18nDefaults(
   collectionOrFileI18n: boolean | Partial<I18nInfo>,
-  { default_locale, locales = ['en'], structure = I18N_STRUCTURE_SINGLE_FILE }: Partial<I18nInfo>,
+  {
+    default_locale,
+    locales = ['en'],
+    structure = I18N_STRUCTURE_SINGLE_FILE,
+    enforce_required_non_default = true,
+  }: Partial<I18nInfo>,
 ): I18nInfo {
   if (typeof collectionOrFileI18n === 'boolean') {
-    return { default_locale, locales, structure };
+    return { default_locale, locales, structure, enforce_required_non_default };
   } else {
     const mergedI18n: I18nInfo = deepmerge(
-      { default_locale, locales, structure },
+      { default_locale, locales, structure, enforce_required_non_default },
       collectionOrFileI18n,
     );
     mergedI18n.locales = collectionOrFileI18n.locales ?? locales;
     mergedI18n.default_locale = collectionOrFileI18n.default_locale || locales?.[0];
+    mergedI18n.enforce_required_non_default =
+      collectionOrFileI18n.enforce_required_non_default || true;
     throwOnMissingDefaultLocale(mergedI18n);
     return mergedI18n;
   }
@@ -145,6 +152,8 @@ function applyFolderCollectionDefaults(
 ): FolderCollectionWithDefaults {
   const collection: FolderCollectionWithDefaults = {
     ...originalCollection,
+    view_filters: undefined,
+    view_groups: undefined,
     i18n: collectionI18n,
   };
 
@@ -200,6 +209,7 @@ function applyCollectionFileDefaults(
       locales: collectionI18n.locales,
       default_locale: collectionI18n.default_locale,
       structure: collectionI18n.structure,
+      enforce_required_non_default: collectionI18n.enforce_required_non_default,
     });
     file.i18n = fileI18n;
   } else {
@@ -228,6 +238,8 @@ function applyFilesCollectionDefaults(
   const collection: FilesCollectionWithDefaults = {
     ...originalCollection,
     i18n: collectionI18n,
+    view_filters: undefined,
+    view_groups: undefined,
     files: originalCollection.files.map(f =>
       applyCollectionFileDefaults(f, originalCollection, collectionI18n, config),
     ),
@@ -271,7 +283,7 @@ function applyCollectionDefaults(
     collection.fields = setI18nDefaultsForFields(collection.fields, Boolean(collectionI18n));
   }
 
-  const { view_filters, view_groups } = collection;
+  const { view_filters, view_groups } = originalCollection;
 
   if (!collection.sortable_fields) {
     collection.sortable_fields = {
@@ -280,7 +292,7 @@ function applyCollectionDefaults(
   }
 
   collection.view_filters = {
-    default: collection.view_filters?.default,
+    default: originalCollection.view_filters?.default,
     filters: (view_filters?.filters ?? []).map(filter => {
       return {
         ...filter,
@@ -290,7 +302,7 @@ function applyCollectionDefaults(
   };
 
   collection.view_groups = {
-    default: collection.view_groups?.default,
+    default: originalCollection.view_groups?.default,
     groups: (view_groups?.groups ?? []).map(group => {
       return {
         ...group,
@@ -311,6 +323,7 @@ export function applyDefaults<EF extends BaseField = UnknownField>(
 
   if (i18n) {
     i18n.default_locale = i18n.default_locale ?? i18n.locales[0];
+    i18n.enforce_required_non_default = i18n.enforce_required_non_default ?? true;
   }
 
   throwOnMissingDefaultLocale(i18n);

@@ -89,9 +89,9 @@ export type SortMap = Record<string, SortObject>;
 
 export type Sort = Record<string, SortMap>;
 
-export type FilterMap = ViewFilter & { active?: boolean };
+export type FilterMap = ViewFilterWithDefaults & { active?: boolean };
 
-export type GroupMap = ViewGroup & { active?: boolean };
+export type GroupMap = ViewGroupWithDefaults & { active?: boolean };
 
 export type Filter = Record<string, Record<string, FilterMap>>; // collection.field.active
 
@@ -267,6 +267,7 @@ export interface I18nSettings {
   currentLocale: string;
   defaultLocale: string;
   locales: string[];
+  enforceRequiredNonDefault?: boolean;
 }
 
 export type Format = keyof typeof formatExtensions;
@@ -305,6 +306,8 @@ export interface BaseCollection {
 
 export interface BaseCollectionWithDefaults extends Omit<BaseCollection, 'i18n'> {
   i18n?: I18nInfo;
+  view_filters?: ViewFiltersWithDefaults;
+  view_groups?: ViewGroupsWithDefaults;
 }
 
 export interface FilesCollection<EF extends BaseField = UnknownField> extends BaseCollection {
@@ -696,6 +699,8 @@ export interface SelectWidgetOptionObject {
 
 export type AuthScope = 'repo' | 'public_repo';
 
+export type AuthScheme = 'token' | 'Bearer';
+
 export type SlugEncoding = 'unicode' | 'ascii';
 
 export type RenderedField<F extends BaseField = UnknownField> = F & {
@@ -958,9 +963,17 @@ export interface ViewFilter {
   pattern: string | boolean | number;
 }
 
+export interface ViewFilterWithDefaults extends ViewFilter {
+  id: string;
+}
+
 export interface ViewFilters {
   default?: string;
   filters: ViewFilter[];
+}
+
+export interface ViewFiltersWithDefaults extends ViewFilters {
+  filters: ViewFilterWithDefaults[];
 }
 
 export interface ViewGroup {
@@ -971,9 +984,17 @@ export interface ViewGroup {
   pattern?: string;
 }
 
+export interface ViewGroupWithDefaults extends ViewGroup {
+  id: string;
+}
+
 export interface ViewGroups {
   default?: string;
   groups: ViewGroup[];
+}
+
+export interface ViewGroupsWithDefaults extends ViewGroups {
+  groups: ViewGroupWithDefaults[];
 }
 
 export type SortDirection =
@@ -1007,6 +1028,7 @@ export interface Backend {
   identity_url?: string;
   gateway_url?: string;
   auth_scope?: AuthScope;
+  auth_scheme?: AuthScheme;
   commit_messages?: {
     create?: string;
     update?: string;
@@ -1047,6 +1069,7 @@ export interface Config<EF extends BaseField = UnknownField> {
   display_url?: string;
   base_url?: string;
   logo_url?: string;
+  logo_link?: string;
   media_folder?: string;
   public_folder?: string;
   media_folder_relative?: boolean;
@@ -1284,6 +1307,7 @@ export interface I18nInfo {
   locales: string[];
   default_locale?: string;
   structure: I18nStructure;
+  enforce_required_non_default?: boolean;
 }
 
 export interface ProcessedCodeLanguage {

@@ -1,12 +1,12 @@
 import { unstable_useForkRef as useForkRef } from '@mui/utils';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import formatDate from 'date-fns/format';
-import parse from 'date-fns/parse';
-import parseISO from 'date-fns/parseISO';
+import { formatDate } from 'date-fns/format';
+import { parse } from 'date-fns/parse';
+import { parseISO } from 'date-fns/parseISO';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import Field from '@staticcms/core/components/common/field/Field';
@@ -14,7 +14,7 @@ import classNames from '@staticcms/core/lib/util/classNames.util';
 import { generateClassNames } from '@staticcms/core/lib/util/theming.util';
 import NowButton from './components/NowButton';
 import { DEFAULT_DATETIME_FORMAT } from './constants';
-import { useDatetimeFormats } from './datetime.util';
+import { getDateFnsLocale, useDatetimeFormats } from './datetime.util';
 import { localToUTC } from './utc.util';
 
 import type { DateTimeField, WidgetControlProps } from '@staticcms/core';
@@ -43,6 +43,7 @@ const DateTimeControl: FC<WidgetControlProps<string | Date, DateTimeField>> = ({
   errors,
   hasErrors,
   forSingleList,
+  config: { locale },
   onChange,
 }) => {
   const ref = useRef<HTMLInputElement | null>(null);
@@ -82,7 +83,14 @@ const DateTimeControl: FC<WidgetControlProps<string | Date, DateTimeField>> = ({
       return valueToParse;
     }
 
-    return storageFormat ? parse(valueToParse, storageFormat, new Date()) : parseISO(valueToParse);
+    if (storageFormat) {
+      const parsed = parse(valueToParse, storageFormat, new Date());
+      // if parsing fails, Invalid Date (NaN) will be returned: fallback to parseISO
+      if (!isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+    return parseISO(valueToParse);
   }, [defaultValue, storageFormat, internalValue]);
 
   const handleChange = useCallback(
@@ -187,6 +195,8 @@ const DateTimeControl: FC<WidgetControlProps<string | Date, DateTimeField>> = ({
     rootRef,
   ]);
 
+  const dateLocale = useMemo(() => (locale ? getDateFnsLocale(locale) : undefined), [locale]);
+
   return (
     <Field
       inputRef={!open ? ref : undefined}
@@ -206,7 +216,11 @@ const DateTimeControl: FC<WidgetControlProps<string | Date, DateTimeField>> = ({
       wrapperClassName={classes.wrapper}
     >
       <div className={classes['inputs']}>
-        <LocalizationProvider key="localization-provider" dateAdapter={AdapterDateFns}>
+        <LocalizationProvider
+          key="localization-provider"
+          dateAdapter={AdapterDateFns}
+          adapterLocale={dateLocale}
+        >
           {dateTimePicker}
         </LocalizationProvider>
         <NowButton

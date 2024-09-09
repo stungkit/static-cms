@@ -14,7 +14,6 @@ import releases from '../../lib/releases';
 import Logo from './Logo';
 import NavigationDrawer from './mobile-drawer/NavigationDrawer';
 import Search from './search/Search';
-import SponsorButton from './SponsorButton';
 
 import type { PaletteMode } from '@mui/material';
 import type { ButtonTypeMap } from '@mui/material/Button';
@@ -104,8 +103,8 @@ const StyledDesktopLink = styled(Button)(
   `,
 ) as ExtendButtonBase<ButtonTypeMap<{}, 'a'>>;
 
-const STATIC_CMS_DOMAIN = 'staticcms.org';
-const DEFAULT_DEMO_SITE = 'demo.staticcms.org';
+const STATIC_CMS_DOMAIN = 'staticjscms.netlify.app';
+const DEFAULT_DEMO_SITE = 'demo-staticjscms.netlify.app';
 const STATIC_CMS_DOMAIN_REGEX = /staticcms\.org$/g;
 
 function createDemoUrl(subdomain?: string): string {
@@ -213,13 +212,6 @@ const Header = ({ mode, docsGroups, searchablePages, toggleColorMode }: HeaderPr
             <IconButton href="https://github.com/StaticJsCMS/static-cms" color="inherit">
               <GitHubIcon />
             </IconButton>
-            <SponsorButton
-              sx={{
-                display: 'none',
-                marginLeft: '8px',
-                [theme.breakpoints.only('md')]: { display: 'inline-flex' },
-              }}
-            />
           </StyledIconsWrapper>
           {items.map(item => {
             let url = '#';
@@ -242,10 +234,6 @@ const Header = ({ mode, docsGroups, searchablePages, toggleColorMode }: HeaderPr
               </StyledDesktopLink>
             );
           })}
-          {/*
-            <StyledDesktopLink component={Link} href="/blog">Blog</StyledDesktopLink>
-          */}
-          <SponsorButton sx={{ [theme.breakpoints.down('lg')]: { display: 'none' } }} />
         </StyledToolbar>
       </StyledAppBar>
       <NavigationDrawer

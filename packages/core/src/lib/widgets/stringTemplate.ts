@@ -1,5 +1,5 @@
-import format from 'date-fns/format';
-import parse from 'date-fns/parse';
+import { format } from 'date-fns/format';
+import { parse } from 'date-fns/parse';
 import get from 'lodash/get';
 import trimEnd from 'lodash/trimEnd';
 import truncate from 'lodash/truncate';
@@ -187,7 +187,7 @@ export function expandPath({
 
 // Allow `fields.` prefix in placeholder to override built in replacements
 // like "slug" and "year" with values from fields of the same name.
-function getExplicitFieldReplacement(key: string, data: ObjectValue | undefined | null) {
+export function getExplicitFieldReplacement(key: string, data: ObjectValue | undefined | null) {
   if (!key.startsWith(FIELD_PREFIX)) {
     return;
   }
